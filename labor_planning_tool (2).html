@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Labor Planning Tool — Lewisville KDC 1429</title>
+<style>
+  :root {
+    --navy:    #0D1B2A;
+    --steel:   #1C3144;
+    --slate:   #2E4A62;
+    --mist:    #EAF0F6;
+    --white:   #FFFFFF;
+    --accent:  #E8A020;
+    --green:   #2D9E6B;
+    --red:     #C0392B;
+    --text:    #1A2535;
+    --subtext: #5A6B7C;
+    --border:  #C8D6E2;
+    --input-bg:#F5F8FB;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--mist);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--navy);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 3px solid var(--accent);
+  }
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .site-badge {
+    background: var(--accent);
+    color: var(--navy);
+    font-weight: 800;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    padding: 4px 10px;
+    border-radius: 3px;
+    text-transform: uppercase;
+  }
+  .header-title {
+    color: var(--white);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+  .header-meta {
+    color: #7A9BB5;
+    font-size: 12px;
+  }
+  .plan-date-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .plan-date-label { color: #7A9BB5; font-size: 12px; }
+  .plan-date-input {
+    background: var(--steel);
+    border: 1px solid var(--slate);
+    color: var(--white);
+    border-radius: 4px;
+    padding: 5px 10px;
+    font-size: 13px;
+    font-family: inherit;
+  }
+  .plan-date-input:focus { outline: 1px solid var(--accent); }
+
+  /* ── STANDARDS BAR ── */
+  .standards-bar {
+    background: var(--steel);
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 0 32px;
+    border-bottom: 1px solid var(--slate);
+  }
+  .std-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 24px 10px 0;
+    margin-right: 24px;
+    border-right: 1px solid var(--slate);
+  }
+  .std-item:last-child { border-right: none; }
+  .std-label { color: #7A9BB5; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+  .std-value {
+    color: var(--accent);
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  /* ── MAIN LAYOUT ── */
+  main { padding: 28px 32px; max-width: 1400px; margin: 0 auto; }
+
+  .grid-3 {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+
+  /* ── PANEL ── */
+  .panel {
+    background: var(--white);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(13,27,42,0.07);
+  }
+  .panel-header {
+    background: var(--navy);
+    color: var(--white);
+    padding: 13px 18px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .panel-header .shift-tag {
+    background: rgba(255,255,255,0.12);
+    border-radius: 3px;
+    padding: 2px 8px;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+  }
+
+  /* ── FORM ROWS ── */
+  .section-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--subtext);
+    padding: 12px 18px 6px;
+    border-top: 1px solid var(--border);
+    background: var(--mist);
+  }
+  .section-label:first-of-type { border-top: none; }
+
+  .field-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 18px;
+    border-bottom: 1px solid #EEF3F8;
+    gap: 10px;
+  }
+  .field-row:last-child { border-bottom: none; }
+  .field-label {
+    font-size: 13px;
+    color: var(--text);
+    flex: 1;
+    min-width: 0;
+  }
+  .field-label small {
+    display: block;
+    font-size: 10px;
+    color: var(--subtext);
+    margin-top: 1px;
+  }
+
+  input[type="number"] {
+    width: 90px;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 5px 8px;
+    font-size: 13px;
+    font-family: 'Consolas', 'SF Mono', monospace;
+    color: var(--text);
+    text-align: right;
+    flex-shrink: 0;
+    transition: border-color 0.15s;
+  }
+  input[type="number"]:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: #FFFBF0;
+  }
+
+  /* ── RESULT ROWS ── */
+  .result-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 18px;
+    border-bottom: 1px solid #EEF3F8;
+    gap: 10px;
+  }
+  .result-row:last-child { border-bottom: none; }
+  .result-label {
+    font-size: 13px;
+    color: var(--subtext);
+    flex: 1;
+  }
+  .result-label small {
+    display: block;
+    font-size: 10px;
+    color: var(--subtext);
+    opacity: 0.7;
+    margin-top: 1px;
+  }
+  .result-value {
+    font-size: 14px;
+    font-weight: 700;
+    font-family: 'Consolas', 'SF Mono', monospace;
+    color: var(--steel);
+    min-width: 60px;
+    text-align: right;
+  }
+
+  /* ── STAFFING ROWS (needed vs scheduled) ── */
+  .staff-row {
+    display: grid;
+    grid-template-columns: 1fr 72px 72px;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 18px;
+    border-bottom: 1px solid #EEF3F8;
+  }
+  .staff-row:last-child { border-bottom: none; }
+  .staff-label { font-size: 13px; color: var(--text); }
+  .staff-col-head {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--subtext);
+    text-align: center;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    padding: 6px 18px 4px;
+    border-bottom: 1px solid #EEF3F8;
+  }
+  .staff-col-heads {
+    display: grid;
+    grid-template-columns: 1fr 72px 72px;
+    gap: 8px;
+    padding: 0 18px;
+    background: #F8FAFC;
+    border-bottom: 1px solid var(--border);
+  }
+  .staff-col-heads span:first-child { visibility: hidden; }
+
+  .needed-val {
+    font-size: 13px;
+    font-family: 'Consolas', 'SF Mono', monospace;
+    color: var(--subtext);
+    text-align: center;
+  }
+  .sched-input {
+    width: 100%;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 5px 6px;
+    font-size: 13px;
+    font-family: 'Consolas', 'SF Mono', monospace;
+    color: var(--text);
+    text-align: center;
+    transition: border-color 0.15s;
+  }
+  .sched-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: #FFFBF0;
+  }
+
+  /* ── HOURS SUMMARY ── */
+  .hours-summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+  .hours-cell {
+    padding: 12px 18px;
+    border-right: 1px solid var(--border);
+  }
+  .hours-cell:last-child { border-right: none; }
+  .hours-cell-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--subtext);
+    margin-bottom: 4px;
+  }
+  .hours-cell-val {
+    font-size: 22px;
+    font-weight: 800;
+    font-family: 'Consolas', 'SF Mono', monospace;
+    color: var(--navy);
+  }
+
+  /* ── VARIANCE CHIP ── */
+  .variance-row {
+    padding: 10px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--mist);
+    border-top: 1px solid var(--border);
+  }
+  .variance-label { font-size: 12px; color: var(--subtext); font-weight: 600; }
+  .variance-chip {
+    font-size: 13px;
+    font-weight: 800;
+    font-family: 'Consolas', 'SF Mono', monospace;
+    padding: 4px 12px;
+    border-radius: 20px;
+  }
+  .over  { background: #FDE8E8; color: var(--red); }        /* positive = overscheduled = red */
+  .under { background: #FEF3CD; color: #92640A; }           /* negative = understaffed = amber */
+  .even  { background: #E6F7F0; color: var(--green); }      /* near-zero = good = green */
+
+  /* ── PPH DISPLAY (full day only) ── */
+  .pph-band {
+    background: var(--navy);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-top: 1px solid var(--slate);
+  }
+  .pph-cell {
+    padding: 14px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .pph-cell:first-child {
+    border-right: 1px solid var(--slate);
+  }
+  .pph-label { color: #7A9BB5; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; font-weight: 700; }
+  .pph-val { font-size: 26px; font-weight: 900; color: var(--accent); font-family: 'Consolas', 'SF Mono', monospace; }
+  .pph-subtext { color: #7A9BB5; font-size: 10px; }
+
+  /* ── RESET BUTTON ── */
+  .actions { margin-top: 20px; display: flex; gap: 12px; justify-content: flex-end; }
+  .btn {
+    padding: 9px 20px;
+    border-radius: 5px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    font-family: inherit;
+    transition: opacity 0.15s;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn-secondary { background: var(--white); border: 1px solid var(--border); color: var(--text); }
+  .btn-primary { background: var(--navy); color: var(--white); }
+
+  /* ── COLLAPSE ── */
+  .panel-header {
+    cursor: pointer;
+    user-select: none;
+  }
+  .collapse-icon {
+    font-size: 12px;
+    transition: transform 0.2s ease;
+    color: rgba(255,255,255,0.6);
+    flex-shrink: 0;
+  }
+  .panel.collapsed .collapse-icon {
+    transform: rotate(-90deg);
+  }
+  .panel-body {
+    transition: none;
+  }
+  .panel.collapsed .panel-body {
+    display: none;
+  }
+
+  @media (max-width: 900px) {
+    .grid-3 { grid-template-columns: 1fr; }
+    main { padding: 16px; }
+    header { padding: 0 16px; }
+    .standards-bar { padding: 0 16px; flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <span class="site-badge">Site 1429</span>
+    <div>
+      <div class="header-title">Labor Planning Tool</div>
+      <div class="header-meta">Lewisville KDC · Kellanova</div>
+    </div>
+  </div>
+  <div class="plan-date-wrap">
+    <span class="plan-date-label">Plan Date</span>
+    <input type="date" class="plan-date-input" id="planDate">
+  </div>
+</header>
+
+<div class="standards-bar">
+  <div class="std-item">
+    <span class="std-label">Case Pick / Hr (CPPH)</span>
+    <span class="std-value">299</span>
+  </div>
+  <div class="std-item">
+    <span class="std-label">Pallet Pick / Hr</span>
+    <span class="std-value">27</span>
+  </div>
+  <div class="std-item">
+    <span class="std-label">Receiving / Hr</span>
+    <span class="std-value">30</span>
+  </div>
+</div>
+
+<main>
+  <div class="grid-3">
+
+    <!-- ════════════════ FULL DAY ════════════════ -->
+    <div class="panel" id="panel-fullday">
+      <div class="panel-header" onclick="togglePanel('panel-fullday')">
+        Full Day Summary
+        <div style="display:flex;align-items:center;gap:8px"><span class="shift-tag">CONSOLIDATED</span><span class="collapse-icon">▾</span></div>
+      </div>
+      <div class="panel-body">
+
+      <div class="section-label">Activity Inputs</div>
+      <div class="field-row">
+        <label class="field-label" for="fd-ib">Inbound Units</label>
+        <input type="number" id="fd-ib" min="0" placeholder="0">
+      </div>
+      <div class="field-row">
+        <label class="field-label" for="fd-ob">Outbound Units</label>
+        <input type="number" id="fd-ob" min="0" placeholder="0">
+      </div>
+      <div class="field-row">
+        <label class="field-label" for="fd-adj-u">Adjustment Units (Picked Ahead)</label>
+        <input type="number" id="fd-adj-u" min="0" placeholder="0">
+      </div>
+      <div class="field-row">
+        <label class="field-label" for="fd-cases">Cases</label>
+        <input type="number" id="fd-cases" min="0" placeholder="0">
+      </div>
+      <div class="field-row">
+        <label class="field-label" for="fd-adj-c">Adjustment Cases (Picked Ahead)</label>
+        <input type="number" id="fd-adj-c" min="0" placeholder="0">
+      </div>
+      <div class="field-row">
+        <label class="field-label" for="fd-loose">Loose Cases</label>
+        <input type="number" id="fd-loose" min="0" placeholder="0">
+      </div>
+
+      <div class="section-label">Shift Parameters</div>
+      <div class="field-row">
+        <label class="field-label" for="fd-hrs">
+          Shift Hours
+          <small>Gross (before breaks)</small>
+        </label>
+        <input type="number" id="fd-hrs" min="0" step="0.25" value="8">
+      </div>
+
+      <div class="section-label">Calculated Metrics</div>
+      <div class="result-row">
+        <span class="result-label">Throughput<small>Inbound Units + Outbound Units</small></span>
+        <span class="result-value" id="fd-thru">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Case Pick Throughput<small>Cases − Adj. Cases (Picked Ahead)</small></span>
+        <span class="result-value" id="fd-cp-thru">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Case Pick %<small>Cases ÷ Loose Cases</small></span>
+        <span class="result-value" id="fd-cppct">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Lunch + Break Deduction<small>8 hr shift: 45 min · 10/12 hr shift: 60 min</small></span>
+        <span class="result-value" id="fd-break">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Productive Hours<small>Shift Hours − Break Deduction</small></span>
+        <span class="result-value" id="fd-prod">—</span>
+      </div>
+
+      <div class="section-label">Staffing</div>
+      <div class="staff-col-heads">
+        <span></span>
+        <div class="staff-col-head" style="padding:6px 0 4px">Needed</div>
+        <div class="staff-col-head" style="padding:6px 0 4px">Sched.</div>
+      </div>
+      <div class="staff-row">
+        <span class="staff-label">Case Pickers</span>
+        <span class="needed-val" id="fd-cp-need">—</span>
+        <input type="number" class="sched-input" id="fd-cp-sched" min="0" placeholder="0">
+      </div>
+      <div class="staff-row">
+        <span class="staff-label">Loaders</span>
+        <span class="needed-val" id="fd-lo-need">—</span>
+        <input type="number" class="sched-input" id="fd-lo-sched" min="0" placeholder="0">
+      </div>
+      <div class="staff-row">
+        <span class="staff-label">Unloaders</span>
+        <span class="needed-val" id="fd-ul-need">—</span>
+        <input type="number" class="sched-input" id="fd-ul-sched" min="0" placeholder="0">
+      </div>
+
+      <div class="section-label">Manpower Hours</div>
+      <div class="hours-summary">
+        <div class="hours-cell">
+          <div class="hours-cell-label">Hours Needed</div>
+          <div class="hours-cell-val" id="fd-mh-need">—</div>
+        </div>
+        <div class="hours-cell">
+          <div class="hours-cell-label">Hours Scheduled</div>
+          <div class="hours-cell-val" id="fd-mh-sched">—</div>
+        </div>
+      </div>
+      <div class="variance-row">
+        <span class="variance-label">Variance (Sched − Needed)</span>
+        <span class="variance-chip even" id="fd-variance">—</span>
+      </div>
+
+      <div class="pph-band">
+        <div class="pph-cell">
+          <div class="pph-label">PPH — As Scheduled</div>
+          <div class="pph-val" id="fd-pph-sched">—</div>
+          <div class="pph-subtext">Based on scheduled heads</div>
+        </div>
+        <div class="pph-cell">
+          <div class="pph-label">PPH — After Variance</div>
+          <div class="pph-val" id="fd-pph-adj">—</div>
+          <div class="pph-subtext">Variance hours applied</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════ FIRST SHIFT ════════════════ -->
+    <div class="panel" id="panel-s1">
+      <div class="panel-header" onclick="togglePanel('panel-s1')">
+        First Shift
+        <div style="display:flex;align-items:center;gap:8px"><span class="shift-tag">S1</span><span class="collapse-icon">▾</span></div>
+      </div>
+      <div class="panel-body">
+
+      <div class="section-label">Activity Inputs</div>
+      <div class="field-row">
+        <label class="field-label" for="s1-ib">Inbound Units</label>
+        <input type="number" id="s1-ib" min="0" placeholder="0">
+      </div>
+      <div class="field-row">
+        <label class="field-label" for="s1-ob">Outbound Units</label>
+        <input type="number" id="s1-ob" min="0" placeholder="0">
+      </div>
+      <div class="field-row">
+        <label class="field-label" for="s1-adj-u">Adjustment Units (Picked Ahead)</label>
+        <input type="number" id="s1-adj-u" min="0" placeholder="0">
+      </div>
+      <div class="field-row">
+        <label class="field-label" for="s1-cases">Cases</label>
+        <input type="number" id="s1-cases" min="0" placeholder="0">
+      </div>
+      <div class="field-row">
+        <label class="field-label" for="s1-adj-c">Adjustment Cases (Picked Ahead)</label>
+        <input type="number" id="s1-adj-c" min="0" placeholder="0">
+      </div>
+
+      <div class="section-label">Shift Parameters</div>
+      <div class="field-row">
+        <label class="field-label" for="s1-hrs">
+          Shift Hours
+          <small>Gross (before breaks)</small>
+        </label>
+        <input type="number" id="s1-hrs" min="0" step="0.25" value="10">
+      </div>
+
+      <div class="section-label">Calculated Metrics</div>
+      <div class="result-row">
+        <span class="result-label">Throughput<small>Inbound Units + Outbound Units</small></span>
+        <span class="result-value" id="s1-thru">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Case Pick Throughput<small>Cases − Adj. Cases (Picked Ahead)</small></span>
+        <span class="result-value" id="s1-cp-thru">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Lunch + Break Deduction<small>8 hr shift: 45 min · 10/12 hr shift: 60 min</small></span>
+        <span class="result-value" id="s1-break">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Productive Hours<small>Shift Hours − Break Deduction</small></span>
+        <span class="result-value" id="s1-prod">—</span>
+      </div>
+
+      <div class="section-label">Staffing</div>
+      <div class="staff-col-heads">
+        <span></span>
+        <div class="staff-col-head" style="padding:6px 0 4px">Needed</div>
+        <div class="staff-col-head" style="padding:6px 0 4px">Sched.</div>
+      </div>
+      <div class="staff-row">
+        <span class="staff-label">Case Pickers</span>
+        <span class="needed-val" id="s1-cp-need">—</span>
+        <input type="number" class="sched-input" id="s1-cp-sched" min="0" placeholder="0">
+      </div>
+      <div class="staff-row">
+        <span class="staff-label">Loaders</span>
+        <span class="needed-val" id="s1-lo-need">—</span>
+        <input type="number" class="sched-input" id="s1-lo-sched" min="0" placeholder="0">
+      </div>
+      <div class="staff-row">
+        <span class="staff-label">Unloaders</span>
+        <span class="needed-val" id="s1-ul-need">—</span>
+        <input type="number" class="sched-input" id="s1-ul-sched" min="0" placeholder="0">
+      </div>
+
+      <div class="section-label">Manpower Hours</div>
+      <div class="hours-summary">
+        <div class="hours-cell">
+          <div class="hours-cell-label">Hours Needed</div>
+          <div class="hours-cell-val" id="s1-mh-need">—</div>
+        </div>
+        <div class="hours-cell">
+          <div class="hours-cell-label">Hours Scheduled</div>
+          <div class="hours-cell-val" id="s1-mh-sched">—</div>
+        </div>
+      </div>
+      <div class="variance-row">
+        <span class="variance-label">Variance (Sched − Needed)</span>
+        <span class="variance-chip even" id="s1-variance">—</span>
+      </div>
+      </div><!-- /panel-body -->
+    </div>
+
+    <!-- ════════════════ SECOND SHIFT ════════════════ -->
+    <div class="panel" id="panel-s2">
+      <div class="panel-header" onclick="togglePanel('panel-s2')">
+        Second Shift
+        <div style="display:flex;align-items:center;gap:8px"><span class="shift-tag">S2</span><span class="collapse-icon">▾</span></div>
+      </div>
+      <div class="panel-body">
+
+      <div class="section-label">Activity Inputs</div>
+      <div class="field-row">
+        <label class="field-label" for="s2-ib">Inbound Units</label>
+        <input type="number" id="s2-ib" min="0" placeholder="0">
+      </div>
+      <div class="field-row">
+        <label class="field-label" for="s2-ob">Outbound Units</label>
+        <input type="number" id="s2-ob" min="0" placeholder="0">
+      </div>
+      <div class="field-row">
+        <label class="field-label" for="s2-adj-u">Adjustment Units (Picked Ahead)</label>
+        <input type="number" id="s2-adj-u" min="0" placeholder="0">
+      </div>
+      <div class="field-row">
+        <label class="field-label" for="s2-cases">Cases</label>
+        <input type="number" id="s2-cases" min="0" placeholder="0">
+      </div>
+      <div class="field-row">
+        <label class="field-label" for="s2-adj-c">Adjustment Cases (Picked Ahead)</label>
+        <input type="number" id="s2-adj-c" min="0" placeholder="0">
+      </div>
+
+      <div class="section-label">Shift Parameters</div>
+      <div class="field-row">
+        <label class="field-label" for="s2-hrs">
+          Shift Hours
+          <small>Gross (before breaks)</small>
+        </label>
+        <input type="number" id="s2-hrs" min="0" step="0.25" value="10">
+      </div>
+
+      <div class="section-label">Calculated Metrics</div>
+      <div class="result-row">
+        <span class="result-label">Throughput<small>Inbound Units + Outbound Units</small></span>
+        <span class="result-value" id="s2-thru">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Case Pick Throughput<small>Cases − Adj. Cases (Picked Ahead)</small></span>
+        <span class="result-value" id="s2-cp-thru">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Lunch + Break Deduction<small>8 hr shift: 45 min · 10/12 hr shift: 60 min</small></span>
+        <span class="result-value" id="s2-break">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Productive Hours<small>Shift Hours − Break Deduction</small></span>
+        <span class="result-value" id="s2-prod">—</span>
+      </div>
+
+      <div class="section-label">Staffing</div>
+      <div class="staff-col-heads">
+        <span></span>
+        <div class="staff-col-head" style="padding:6px 0 4px">Needed</div>
+        <div class="staff-col-head" style="padding:6px 0 4px">Sched.</div>
+      </div>
+      <div class="staff-row">
+        <span class="staff-label">Case Pickers</span>
+        <span class="needed-val" id="s2-cp-need">—</span>
+        <input type="number" class="sched-input" id="s2-cp-sched" min="0" placeholder="0">
+      </div>
+      <div class="staff-row">
+        <span class="staff-label">Loaders</span>
+        <span class="needed-val" id="s2-lo-need">—</span>
+        <input type="number" class="sched-input" id="s2-lo-sched" min="0" placeholder="0">
+      </div>
+      <div class="staff-row">
+        <span class="staff-label">Unloaders</span>
+        <span class="needed-val" id="s2-ul-need">—</span>
+        <input type="number" class="sched-input" id="s2-ul-sched" min="0" placeholder="0">
+      </div>
+
+      <div class="section-label">Manpower Hours</div>
+      <div class="hours-summary">
+        <div class="hours-cell">
+          <div class="hours-cell-label">Hours Needed</div>
+          <div class="hours-cell-val" id="s2-mh-need">—</div>
+        </div>
+        <div class="hours-cell">
+          <div class="hours-cell-label">Hours Scheduled</div>
+          <div class="hours-cell-val" id="s2-mh-sched">—</div>
+        </div>
+      </div>
+      <div class="variance-row">
+        <span class="variance-label">Variance (Sched − Needed)</span>
+        <span class="variance-chip even" id="s2-variance">—</span>
+      </div>
+      </div><!-- /panel-body -->
+    </div>
+
+  </div><!-- /grid-3 -->
+
+  <div class="actions">
+    <button class="btn btn-secondary" onclick="resetAll()">Reset All Fields</button>
+    <button class="btn btn-primary" onclick="window.print()">Print / Save PDF</button>
+  </div>
+
+</main>
+
+<script>
+// ── CONSTANTS ──────────────────────────────────────────────
+const CPPH     = 299;   // Case picks per hour
+const PPH_LOAD = 27;    // Pallet picks (loading) per hour
+const PPH_RECV = 30;    // Receiving units per hour
+
+// Break deduction by shift length:
+//   8 hr  → 1×15min paid break + 30min lunch = 0.75 hr
+//   10/12 → 2×15min paid breaks + 30min lunch = 1.00 hr
+function getBreak(hrs) {
+  return hrs >= 10 ? 1.00 : 0.75;
+}
+
+// Set tomorrow's date as default
+const tomorrow = new Date();
+tomorrow.setDate(tomorrow.getDate() + 1);
+document.getElementById('planDate').value = tomorrow.toISOString().split('T')[0];
+
+// ── HELPERS ────────────────────────────────────────────────
+const n  = id => parseFloat(document.getElementById(id).value) || 0;
+const el = id => document.getElementById(id);
+const fmt = (v, dec=2) => isFinite(v) && v > 0 ? v.toFixed(dec) : '—';
+const fmtInt = v => isFinite(v) && v > 0 ? Math.ceil(v).toString() : '—';
+
+function setVariance(elId, val) {
+  const chip = el(elId);
+  if (!isFinite(val)) { chip.textContent = '—'; chip.className = 'variance-chip even'; return; }
+  const sign = val > 0 ? '+' : '';
+  chip.textContent = sign + val.toFixed(1) + ' hrs';
+  // Positive = overscheduled (over budget), negative = understaffed
+  chip.className = 'variance-chip ' + (val > 2 ? 'over' : val < -2 ? 'under' : 'even');
+}
+
+// ── CALCULATION ENGINE ─────────────────────────────────────
+function calc(prefix, hasLooseCases) {
+  const ib    = n(prefix + '-ib');
+  const ob    = n(prefix + '-ob');
+  const adjU  = n(prefix + '-adj-u');
+  const cases = n(prefix + '-cases');
+  const adjC  = n(prefix + '-adj-c');
+  const hrs   = n(prefix + '-hrs');
+
+  // Optional: loose cases (full day only)
+  const loose = hasLooseCases ? n('fd-loose') : 0;
+
+  // Throughput
+  const thru = ib + ob;
+  el(prefix + '-thru').textContent = thru > 0 ? thru.toLocaleString() : '—';
+
+  // Case Pick Throughput: Cases − Adjustment Cases (Picked Ahead)
+  const cpThru = Math.max(0, cases - adjC);
+  el(prefix + '-cp-thru').textContent = cpThru > 0 ? cpThru.toLocaleString() : '—';
+
+  // Case Pick % (full day only): Cases ÷ Loose Cases
+  if (hasLooseCases) {
+    const cpPct = loose > 0 ? cases / loose : 0;
+    el('fd-cppct').textContent = loose > 0 ? (cpPct * 100).toFixed(1) + '%' : '—';
+  }
+
+  // Break deduction (dynamic by shift length)
+  const brk = getBreak(hrs);
+  el(prefix + '-break').textContent = (brk * 60) + ' min (' + brk.toFixed(2) + ' hr)';
+
+  // Productive hours
+  const prod = Math.max(0, hrs - brk);
+  el(prefix + '-prod').textContent = prod > 0 ? prod.toFixed(2) + ' hr' : '—';
+
+  if (prod <= 0) return;
+
+  // Case Pickers needed: Case Pick Throughput ÷ (CPPH × productive hrs)
+  const cpNeed = cpThru > 0 ? cpThru / (CPPH * prod) : 0;
+  el(prefix + '-cp-need').textContent = cpNeed > 0 ? cpNeed.toFixed(2) : '—';
+
+  // Loaders needed: outbound units / (PPH_LOAD × productive hrs)
+  const loNeed = ob > 0 ? ob / (PPH_LOAD * prod) : 0;
+  el(prefix + '-lo-need').textContent = loNeed > 0 ? loNeed.toFixed(2) : '—';
+
+  // Unloaders needed: inbound units / (PPH_RECV × productive hrs)
+  const ulNeed = ib > 0 ? ib / (PPH_RECV * prod) : 0;
+  el(prefix + '-ul-need').textContent = ulNeed > 0 ? ulNeed.toFixed(2) : '—';
+
+  // Manpower hours needed = (pickers + loaders + unloaders) × productive hrs
+  const totalNeed = (cpNeed + loNeed + ulNeed) * prod;
+  el(prefix + '-mh-need').textContent = totalNeed > 0 ? totalNeed.toFixed(1) : '—';
+
+  // Scheduled manpower hours = total scheduled heads × productive hrs
+  const cpSched = n(prefix + '-cp-sched');
+  const loSched = n(prefix + '-lo-sched');
+  const ulSched = n(prefix + '-ul-sched');
+  const totalSched = (cpSched + loSched + ulSched) * prod;
+  el(prefix + '-mh-sched').textContent = totalSched > 0 ? totalSched.toFixed(1) : '—';
+
+  // Variance
+  const variance = totalSched - totalNeed;
+  setVariance(prefix + '-variance', totalNeed > 0 ? variance : NaN);
+
+  // Operational PPH (full day only) — two scenarios
+  if (hasLooseCases) {
+    const schedHeads = cpSched + loSched + ulSched;
+    const schedHrs = n('fd-hrs');
+    const prodHrs = Math.max(0, schedHrs - getBreak(schedHrs));
+
+    // PPH as scheduled
+    const schedMH = schedHeads * prodHrs;
+    const pphSched = (schedMH > 0) ? thru / schedMH : 0;
+    el('fd-pph-sched').textContent = pphSched > 0 ? pphSched.toFixed(1) : '—';
+
+    // PPH after variance: use needed manpower hours (totalNeed already computed)
+    // totalNeed = (cpNeed + loNeed + ulNeed) * prod
+    const pphAdj = (totalNeed > 0) ? thru / totalNeed : 0;
+    el('fd-pph-adj').textContent = pphAdj > 0 ? pphAdj.toFixed(1) : '—';
+  }
+}
+
+function recalcAll() {
+  calc('fd', true);
+  calc('s1', false);
+  calc('s2', false);
+}
+
+// ── COLLAPSE ──────────────────────────────────────────────
+function togglePanel(id) {
+  document.getElementById(id).classList.toggle('collapsed');
+}
+
+// ── RESET ──────────────────────────────────────────────────
+function resetAll() {
+  if (!confirm('Reset all fields to zero?')) return;
+  document.querySelectorAll('input[type="number"]').forEach(inp => {
+    // Keep shift hours at their defaults
+    if (inp.id === 'fd-hrs') inp.value = 8;
+    else if (inp.id === 's1-hrs' || inp.id === 's2-hrs') inp.value = 10;
+    else inp.value = '';
+  });
+  const tmrw = new Date();
+  tmrw.setDate(tmrw.getDate() + 1);
+  document.getElementById('planDate').value = tmrw.toISOString().split('T')[0];
+  recalcAll();
+}
+
+// ── EVENT BINDING ──────────────────────────────────────────
+document.querySelectorAll('input').forEach(inp => {
+  inp.addEventListener('input', recalcAll);
+});
+
+// Initial calc pass
+recalcAll();
+</script>
+</body>
+</html>
